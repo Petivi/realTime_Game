@@ -13,7 +13,7 @@ var io = socketio(server);
 
 var boardWidth = 1100;
 var boardHeight = 600;
-var ballPosition = { 'x': boardWidth / 2, 'y': boardHeight / 2 };
+var ballPosition = { 'x': (boardWidth / 2)+7.5, 'y': (boardHeight / 2)-7.5 };
 
 io.on('connection', client => {
     client.emit('ballPosition', ballPosition);
