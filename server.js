@@ -34,10 +34,6 @@ io.on('connection', client => {
         }
     }, 20)
 
-
-
-
-
 });
 
 function collisionTopBottom() {

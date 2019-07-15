@@ -20,7 +20,7 @@
     <div class="text-center mt-3">
         <button id="btn-play" class="btn btn-primary">Play</button>
     </div>
-    <div id="terrain">
+    <div id="terrain" onmousemove="movePlayer(event)">
         <div id="ligne-centre"></div>
         <div id="j1" class="j"></div>
         <div id="j2" class="j"></div>
@@ -29,10 +29,16 @@
 
     <script>
         var ball = document.getElementById('ball');
+        var terrain = document.getElementById('terrain');
         socket.on('ballPosition', data => {
             ball.style.left = data.x.toString() + 'px';
             ball.style.top = data.y.toString() + 'px';
         });
+        
+        function movePlayer(event) {
+            console.log(event)
+            
+        }
     </script>
 </body>
 
