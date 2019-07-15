@@ -25,12 +25,12 @@ io.on('connection', client => {
         if (ballPosition.y > 0) {
             client.emit('ballPosition', ballPosition);
         } else {
-            collision();
+            collisionTopBottom();
         }
-        if (ballPosition.y > 600) {
+        if (ballPosition.y < 600 - ballSize) {
             client.emit('ballPosition', ballPosition);
         } else {
-            collision();
+            collisionTopBottom();
         }
     }, 20)
 
@@ -40,10 +40,14 @@ io.on('connection', client => {
 
 });
 
-function collision() {
- //changer la vitesse pour redefinir la direction de la ball
+function collisionTopBottom() {
+    vitesse.y = vitesse.y * (-1);
+}
+
+function collisionRightLeft() {
+    vitesse.x = vitesse.x * (-1);
 }
 
 function init() {
-    vitesse = { x: -1, y: 0 };
+    vitesse = { x: 0, y: -3 };
 }
