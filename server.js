@@ -17,6 +17,8 @@ var boardWidth = 1100;
 var boardHeight = 600;
 var ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
 var vitesse = { x: 0, y: 0 };
+var playersPosition = { j1: { x: 20, y: 250 }, j2: { x: 20, y: 250 } };
+var playerWidth = 10;
 
 io.on('connection', client => {
     init(client);
@@ -24,20 +26,24 @@ io.on('connection', client => {
         ballPosition.x += vitesse.x; //direction aleatoire plus tard
         ballPosition.y += vitesse.y;
 
-        if (ballPosition.y > 0) {
-            client.emit('ballPosition', ballPosition);
-        } else {
+        if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
             collisionTopBottom();
         }
-        if (ballPosition.y < 600 - ballSize) {
-            client.emit('ballPosition', ballPosition);
-        } else {
-            collisionTopBottom();
+        if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
+            collisionRightLeft();
         }
+        client.emit('ballPosition', ballPosition);
     }, 20);
 
     client.on('movePlayer', position => {
-        console.log(position)
+        let posY = position.slice(0, -2);
+        if (client.joueur === 1) {
+            playersPosition.j1.y = +posY;
+        }   
+        if (client.joueur === 2) {
+            playersPosition.j2.y = +posY;
+        }   
+        client.broadcast.emit('newOpponentPosition', position);
     });
 
     client.on('disconnect', () => {
@@ -48,7 +54,6 @@ io.on('connection', client => {
             p2 = null;
         }
     });
-
 });
 
 function collisionTopBottom() {
