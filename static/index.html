@@ -16,12 +16,23 @@
             upgrade: false
         });
     </script>
+
     <div id="terrain">
         <div id="ligne-centre"></div>
         <div id="j1" class="j"></div>
         <div id="j2" class="j"></div>
         <div id="ball"></div>
     </div>
+
+    <script>
+        var ball = document.getElementById('ball');
+        socket.on('ballPosition', data => {
+            console.log(ball.style)
+            ball.style.left = data.x.toString() + 'px';
+            ball.style.top = data.y.toString() + 'px';
+            console.log(data)
+        });
+    </script>
 </body>
 
 </html>

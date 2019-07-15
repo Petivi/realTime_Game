@@ -21,6 +21,7 @@ body {
 }
 
 #ball {
+    z-index: 2;
     position: absolute;
     height: 15px;
     width: 15px;
