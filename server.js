@@ -3,6 +3,7 @@ const socketio = require('socket.io');
 const mongoose = require('mongoose');
 
 var app = express();
+app.use(express.static('static'));
 
 var server = app.listen(3000, () => {
     console.log('serveur ecoutant sur le port 3000...')
