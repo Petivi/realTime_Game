@@ -17,11 +17,11 @@ var ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) 
 var vitesse = { x: 0, y: 0 };
 var playersPosition = { j1: {x: 20, y: 250}, j2: {x: 20, y: 250}};
 var playerWidth = 10;
+var playerHeight = 100;
 
 io.on('connection', client => {
     init();
     let interval = setInterval(() => {
-      console.log(vitesse);
         ballPosition.x += vitesse.x; //direction aleatoire plus tard
         ballPosition.y += vitesse.y;
 
@@ -29,7 +29,21 @@ io.on('connection', client => {
           collisionTopBottom();
         }
         if(ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)){
-          collisionRightLeft();
+          if(vitesse.x > 0){ // vers la droite
+            if(ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)){
+              collisionRightLeft();
+            }else {
+              vitesse.x = 0;
+              vitesse.y = 0;
+            }
+          }else { // vers la gauche
+            if(ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)){
+              collisionRightLeft();
+            }else {
+              vitesse.x = 0;
+              vitesse.y = 0;
+            }
+          }
         }
 
         client.emit('ballPosition', ballPosition);
