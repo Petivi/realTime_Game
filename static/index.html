@@ -6,17 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="js/socketio.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/styles.css">
     <title>Game</title>
 </head>
 
 <body id="body">
-  <script>
-      var socket = io({
-          transports: ['websocket'],
-          upgrade: false
-      });
-  </script>
-  <h1>Oui</h1>
+    <script>
+        var socket = io({
+            transports: ['websocket'],
+            upgrade: false
+        });
+    </script>
+    <div id="terrain">
+        <div id="ligne-centre"></div>
+        <div id="j1" class="j"></div>
+        <div id="j2" class="j"></div>
+        <div id="ball"></div>
+    </div>
 </body>
 
 </html>
