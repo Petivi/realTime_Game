@@ -15,6 +15,10 @@
           transports: ['websocket'],
           upgrade: false
       });
+
+      socket.on('ballPosition', (ballPosition) => {
+          console.log(ballPosition);
+      });
   </script>
   <h1>Oui</h1>
 </body>
