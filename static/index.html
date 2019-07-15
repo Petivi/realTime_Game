@@ -17,8 +17,23 @@
             upgrade: false
         });
     </script>
-    <div class="text-center mt-3">
-        <button id="btn-play" class="btn btn-primary">Play</button>
+    <div class="row">
+        <div class="col offset-3">
+            <h1>Joueur 1</h1>
+        </div>
+        <div class="col">
+            <h1>Joueur 2</h1>
+        </div>
+    </div>
+    <div class="row" id="btnRejouer" style="display: none">
+        <div class="col text-center">
+            <button class="btn btn-primary" onclick="rejouer()">Rejouer</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col text-center">
+            <h1 id="textVictoire"></h1>
+        </div>
     </div>
     <div id="terrain" onmousemove="movePlayer(event)">
         <div id="ligne-centre"></div>
@@ -30,6 +45,8 @@
     <script>
         var ball = document.getElementById('ball');
         var terrain = document.getElementById('terrain');
+        var btnRejouer = document.getElementById('btnRejouer');
+        var textVictoire = document.getElementById('textVictoire');
         var player, playerOpponent;
 
         socket.on('setJoueur', p => {
@@ -41,6 +58,11 @@
                 player = document.getElementById('j2');
                 playerOpponent = document.getElementById('j1');
             }
+        });
+
+        socket.on('win', phrase => {
+            btnRejouer.style.display = 'inline';
+            textVictoire.innerHTML = phrase;
         });
 
         socket.on('newOpponentPosition', p => {
@@ -61,6 +83,16 @@
                 }
             }
         }
+
+        function rejouer() {
+            socket.emit('rejouer');
+        }
+        
+        socket.on('rejouer', () => {
+            //socket.emit('rejouer');
+            btnRejouer.style.display = 'none';
+            textVictoire.innerHTML = '';
+        });
 
     </script>
 </body>

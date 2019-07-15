@@ -4,8 +4,8 @@ const socketio = require('socket.io');
 var app = express();
 app.use(express.static('static'));
 
-var server = app.listen(3000, () => {
-    console.log('serveur ecoutant sur le port 3000...')
+var server = app.listen(3000, '25.64.228.167', () => {
+    console.log('serveur ecoutant sur le port 3000...');
 });
 var io = socketio(server);
 
@@ -14,7 +14,7 @@ var p2 = null;
 var ballSize = 15;
 var boardWidth = 1100;
 var boardHeight = 600;
-var ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
+var ballPosition;
 var vitesse = { x: 0, y: 0 };
 var playersPosition = { j1: { x: 20, y: 250 }, j2: { x: 20, y: 250 } };
 var playerWidth = 10;
@@ -22,38 +22,13 @@ var playerHeight = 100;
 
 io.on('connection', client => {
     init(client);
-    let interval = setInterval(() => {
-        ballPosition.x += vitesse.x;
-        ballPosition.y += vitesse.y;
-        if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
-            collisionTopBottom();
-        }
-        if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
-            if (vitesse.x > 0) { // vers la droite
-                if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
-                    collisionRightLeft();
-                } else {
-                    vitesse.x = 0;
-                    vitesse.y = 0;
-                }
-            } else { // vers la gauche
-                if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
-                    collisionRightLeft();
-                } else {
-                    vitesse.x = 0;
-                    vitesse.y = 0;
-                }
-            }
-        }
-        client.emit('ballPosition', ballPosition);
-    }, 20);
-
+    launchGame(client);
     client.on('movePlayer', position => {
         let posY = position.slice(0, -2);
-        if (client.joueur === 1) {
+        if (client.player === 1) {
             playersPosition.j1.y = +posY;
         }
-        if (client.joueur === 2) {
+        if (client.player === 2) {
             playersPosition.j2.y = +posY;
         }
         client.broadcast.emit('newOpponentPosition', position);
@@ -67,7 +42,42 @@ io.on('connection', client => {
             p2 = null;
         }
     });
+
+    client.on('rejouer', () => {
+        vitesse = { x: 3, y: 3 };
+        ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
+        io.emit('rejouer');
+        launchGame(client);
+    });
 });
+
+function launchGame(client) {
+    let interval = setInterval(() => {
+        ballPosition.x += vitesse.x;
+        ballPosition.y += vitesse.y;
+        if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
+            collisionTopBottom();
+        }
+        if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
+            if (vitesse.x > 0) { // vers la droite
+                if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
+                    collisionRightLeft();
+                } else {
+                    io.emit('win', 'Joueur 1 a gagné');
+                    clearInterval(interval);
+                }
+            } else { // vers la gauche
+                if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
+                    collisionRightLeft();
+                } else {
+                    io.emit('win', 'Joueur 2 a gagné');
+                    clearInterval(interval);
+                }
+            }
+        }
+        client.emit('ballPosition', ballPosition);
+    }, 20);
+}
 
 function collisionTopBottom() {
     vitesse.y = vitesse.y * (-1);
@@ -78,7 +88,8 @@ function collisionRightLeft() {
 }
 
 function init(client) {
-    vitesse = { x: 2, y: 2 };
+    ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
+    vitesse = { x: 3, y: 3 };
     if (!p1) {
         p1 = { id: client.id, joueur: 1 }
         client.player = 1;
