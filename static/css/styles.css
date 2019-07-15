@@ -3,6 +3,8 @@ body {
 }
 
 #terrain {
+    cursor: none;
+    overflow: hidden;
     position: relative;
     margin: auto;
     margin-top: 150px;

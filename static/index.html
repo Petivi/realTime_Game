@@ -30,15 +30,39 @@
     <script>
         var ball = document.getElementById('ball');
         var terrain = document.getElementById('terrain');
+        var player, playerOpponent;
+
+        socket.on('setJoueur', p => {
+            if (p.joueur === 1) {
+                player = document.getElementById('j1');
+                playerOpponent = document.getElementById('j2');
+            }
+            if (p.joueur === 2) {
+                player = document.getElementById('j2');
+                playerOpponent = document.getElementById('j1');
+            }
+        });
+
+        socket.on('newOpponentPosition', p => {
+            console.log(p)
+            playerOpponent.style.top = p;
+        });
+
         socket.on('ballPosition', data => {
             ball.style.left = data.x.toString() + 'px';
             ball.style.top = data.y.toString() + 'px';
         });
-        
+
         function movePlayer(event) {
-            console.log(event)
-            
+            if (player) {
+                let sourisPosition = { x: event.clientX - terrain.offsetLeft, y: event.clientY - terrain.offsetTop };
+                if (sourisPosition.y < 600 && sourisPosition.y > 0) {
+                    player.style.top = (sourisPosition.y - 50) + 'px';
+                    socket.emit('movePlayer', player.style.top);
+                }
+            }
         }
+
     </script>
 </body>
 
