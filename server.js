@@ -15,24 +15,31 @@ var boardWidth = 1100;
 var boardHeight = 600;
 var ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
 var vitesse = { x: 0, y: 0 };
+var playersPosition = { j1: {x: 20, y: 250}, j2: {x: 20, y: 250}};
 
 io.on('connection', client => {
     init();
     let interval = setInterval(() => {
+        var moveBall = true;
         ballPosition.x += vitesse.x; //direction aleatoire plus tard
         ballPosition.y += vitesse.y;
 
-        if (ballPosition.y > 0) {
-            client.emit('ballPosition', ballPosition);
+        if (ballPosition.y > 0 && ballPosition.y < 600 - ballSize) {
+            moveBall = true;
         } else {
-            collisionTopBottom();
+            moveBall = false;
         }
-        if (ballPosition.y < 600 - ballSize) {
-            client.emit('ballPosition', ballPosition);
-        } else {
-            collisionTopBottom();
+
+        if(moveBall){
+          client.emit('ballPosition', ballPosition);
+        }else {
+          collisionTopBottom();
         }
     }, 20)
+
+
+
+
 
 });
 
@@ -45,5 +52,5 @@ function collisionRightLeft() {
 }
 
 function init() {
-    vitesse = { x: +1, y: 0 };
+    vitesse = { x: +1, y: -1 };
 }
