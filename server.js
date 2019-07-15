@@ -49,5 +49,5 @@ function collisionRightLeft() {
 }
 
 function init() {
-    vitesse = { x: 0, y: -3 };
+    vitesse = { x: +1, y: 0 };
 }
