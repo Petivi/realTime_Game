@@ -31,18 +31,18 @@ body {
 
 .j {
     position: absolute;
-    top: 40%;
-    height: 16%;
+    top: 250px;
+    height: 100px;
     width: 10px;
     background-color: rgb(0, 236, 253);
 }
 
 #j1 {
-    left: 2%;
+    left: 20px;
 }
 
 #j2 {
-    right: 2%;
+    right: 20px;
 }
 
 #btn-play {
