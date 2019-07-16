@@ -36,6 +36,24 @@
         </div>
     </div>
     <div id="terrain" onmousemove="movePlayer(event)">
+        <div id="waitingPlayers">
+          <p class="displayTextWait">En attente de joueurs...</p>
+        </div>
+        <div id="rdyCheck">
+          <div id="rdyCheckP1" style="left:0">
+            <p class="displayTextWait">Joueur 1</p>
+            <p>Cliquez lorsque vous êtes prêt !</p>
+            <p id="waitingP1" class="waitingP">En attente</p>
+          </div>
+          <div id="rdyCheckP2" style="right:0">
+            <p class="displayTextWait">Joueur 2</p>
+            <p>Cliquez lorsque vous êtes prêt !</p>
+            <p id="waitingP2" class="waitingP">En attente</p>
+          </div>
+          <div class="decompteStart">
+            <p id="decompteSecondes"></p>
+          </div>
+        </div>
         <div id="ligne-centre"></div>
         <div id="j1" class="j"></div>
         <div id="j2" class="j"></div>
@@ -47,7 +65,34 @@
         var terrain = document.getElementById('terrain');
         var btnRejouer = document.getElementById('btnRejouer');
         var textVictoire = document.getElementById('textVictoire');
+        var waitingPlayers = document.getElementById('waitingPlayers');
+        var rdyCheck = document.getElementById('rdyCheck');
+        var waitingP1 = document.getElementById('waitingP1');
+        var waitingP2 = document.getElementById('waitingP2');
+        var decompteSecondes = document.getElementById('decompteSecondes');
         var player, playerOpponent;
+
+        rdyCheck.addEventListener('click',function(){
+          socket.emit('rdyCheck');
+        })
+
+        socket.on('rdyCheck', p => {
+          if(p === 1){
+            waitingP1.innerHTML = "Prêt !";
+            waitingP1.style.color = "green";
+          }else if (p === 2) {
+            waitingP2.innerHTML = "Prêt !";
+            waitingP2.style.color = "green";
+          }
+        });
+
+        socket.on('getReady', seconde => {
+          decompteSecondes.innerHTML = seconde;
+        });
+
+        socket.on('startGame', () => {
+          rdyCheck.style.display = 'none';
+        });
 
         socket.on('setJoueur', p => {
             if (p.joueur === 1) {
@@ -87,11 +132,20 @@
         function rejouer() {
             socket.emit('rejouer');
         }
-        
+
         socket.on('rejouer', () => {
             //socket.emit('rejouer');
+            rdyCheck.style.display = 'block';
             btnRejouer.style.display = 'none';
             textVictoire.innerHTML = '';
+        });
+
+        socket.on('waitingPlayers', () => {
+          waitingPlayers.style.display = 'block';
+        });
+        socket.on('waitingPlayersOff', () => {
+          waitingPlayers.style.display = 'none';
+          rdyCheck.style.display = 'block';
         });
 
     </script>

@@ -4,7 +4,8 @@ const socketio = require('socket.io');
 var app = express();
 app.use(express.static('static'));
 
-var server = app.listen(3000, '25.64.228.167', () => {
+// var server = app.listen(3000, '25.64.228.167', () => {
+var server = app.listen(3000, '127.0.0.1', () => {
     console.log('serveur ecoutant sur le port 3000...');
 });
 var io = socketio(server);
@@ -22,7 +23,7 @@ var playerHeight = 100;
 
 io.on('connection', client => {
     init(client);
-    launchGame(client);
+    // launchGame(client);
     client.on('movePlayer', position => {
         let posY = position.slice(0, -2);
         if (client.player === 1) {
@@ -47,9 +48,39 @@ io.on('connection', client => {
         vitesse = { x: 3, y: 3 };
         ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
         io.emit('rejouer');
-        launchGame(client);
+        rdyCheckAndStart(client);
+        // launchGame(client);
+    });
+
+    client.on('rdyCheck', () => {
+      rdyCheckAndStart(client);
     });
 });
+
+function rdyCheckAndStart(client){
+  io.emit('rdyCheck', client.player);
+  if(client.player === 1){
+    p1.rdy = true;
+  }else if (client.player === 2) {
+    p2.rdy = true;
+  }
+  if(p1.rdy && p2.rdy){
+    /****************/
+    let seconde = 3;
+    io.emit('getReady', seconde);
+    let getReadyInterval = setInterval(() => {
+      seconde--;
+      if (seconde > 0) {
+        io.emit('getReady', seconde);
+      } else {
+        clearInterval(getReadyInterval);
+        io.emit('startGame');
+        launchGame(client);
+      }
+    }, 1000);
+    /**********************/
+  }
+}
 
 function launchGame(client) {
     let interval = setInterval(() => {
@@ -75,7 +106,7 @@ function launchGame(client) {
                 }
             }
         }
-        client.emit('ballPosition', ballPosition);
+        io.emit('ballPosition', ballPosition);
     }, 20);
 }
 
@@ -91,13 +122,15 @@ function init(client) {
     ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
     vitesse = { x: 3, y: 3 };
     if (!p1) {
-        p1 = { id: client.id, joueur: 1 }
+        p1 = { id: client.id, joueur: 1, rdy: false }
         client.player = 1;
         io.to(client.id).emit('setJoueur', p1);
+        io.emit('waitingPlayers');
     } else if (!p2) {
-        p2 = { id: client.id, joueur: 2 }
+        p2 = { id: client.id, joueur: 2, rdy: false }
         client.player = 2;
         io.to(client.id).emit('setJoueur', p2);
+        io.emit('waitingPlayersOff');
     } else {
         io.to(client.id).emit('setJoueur', null);
     }
