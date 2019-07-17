@@ -106,6 +106,9 @@ function launchGame(client) {
         if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
             if (vitesse.x > 0) { // vers la droite
                 if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
+                    console.log('position touchée : ' + (ballPosition.y - playersPosition.j2.y));
+                    console.log('vitesse x : ' + vitesse.x);
+                    console.log('vitesse y : ' + vitesse.y);
                     collisionRightLeft();
                 } else {
                     p1.score++;
