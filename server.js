@@ -20,6 +20,7 @@ var vitesse = { x: 0, y: 0 };
 var playersPosition = { j1: { x: 20, y: 250 }, j2: { x: 20, y: 250 } };
 var playerWidth = 10;
 var playerHeight = 100;
+var gameStarted = false;
 
 io.on('connection', client => {
     init(client);
@@ -45,6 +46,7 @@ io.on('connection', client => {
     });
 
     client.on('rejouer', () => {
+      gameStarted = false;
       resetScore();
       vitesse = { x: 3, y: 3 };
       ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
@@ -53,6 +55,7 @@ io.on('connection', client => {
     });
 
     client.on('newBall', () => {
+      gameStarted = false;
       vitesse = { x: 3, y: 3 };
       ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
       io.emit('waitingPlayersOff');
@@ -66,68 +69,73 @@ io.on('connection', client => {
 
 
 function rdyCheckAndStart(client){
-  io.emit('rdyCheck', client.player);
-  if(client.player === 1){
-    p1.rdy = true;
-  }else if (client.player === 2) {
-    p2.rdy = true;
-  }
-  if(p1.rdy && p2.rdy){
-    /****************/
-    let seconde = 3;
-    io.emit('getReady', seconde);
-    let getReadyInterval = setInterval(() => {
-      seconde--;
-      if (seconde > 0) {
-        io.emit('getReady', seconde);
-      } else {
-        clearInterval(getReadyInterval);
-        io.emit('startGame');
-        launchGame(client);
-      }
-    }, 1000);
-    /**********************/
+  console.log('oui');
+  if(!gameStarted){
+    console.log('aa');
+    io.emit('rdyCheck', client.player);
+    if(client.player === 1){
+      p1.rdy = true;
+    }else if (client.player === 2) {
+      p2.rdy = true;
+    }
+    if(p1.rdy && p2.rdy){
+      gameStarted = true;
+      /****************/
+      let seconde = 3;
+      io.emit('getReady', seconde);
+      let getReadyInterval = setInterval(() => {
+        seconde--;
+        if (seconde > 0) {
+          io.emit('getReady', seconde);
+        } else {
+          clearInterval(getReadyInterval);
+          io.emit('startGame');
+          launchGame(client);
+        }
+      }, 1000);
+      /**********************/
+    }
   }
 }
 
 function launchGame(client) {
-    let interval = setInterval(() => {
-        ballPosition.x += vitesse.x;
-        ballPosition.y += vitesse.y;
-        if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
-            collisionTopBottom();
+  let interval = setInterval(() => {
+    ballPosition.x += vitesse.x;
+    ballPosition.y += vitesse.y;
+    if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
+      collisionTopBottom();
+    }
+    if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
+      if (vitesse.x > 0) { // vers la droite
+        if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
+          collisionRightLeft();
+        } else {
+          p1.score++;
+          io.emit('updateScore', {p1: p1.score, p2: p2.score});
+          clearInterval(interval);
+          if(p1.score >= 5){
+            io.emit('win', 'Joueur 1 a gagné');
+          }else {
+            io.emit('displayNewBall');
+          }
         }
-        if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
-            if (vitesse.x > 0) { // vers la droite
-                if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
-                    collisionRightLeft();
-                } else {
-                    p1.score++;
-                    io.emit('updateScore', {p1: p1.score, p2: p2.score});
-                    clearInterval(interval);
-                    if(p1.score >= 5){
-                      io.emit('win', 'Joueur 1 a gagné');
-                    }else {
-                      io.emit('displayNewBall');
-                    }
-                }
-            } else { // vers la gauche
-                if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
-                    collisionRightLeft();
-                } else {
-                    p2.score++;
-                    io.emit('updateScore', {p1: p1.score, p2: p2.score});
-                    clearInterval(interval);
-                    if (p2.score >= 5) {
-                      io.emit('win', 'Joueur 2 a gagné');
-                    }else {
-                      io.emit('displayNewBall');
-                    }
-                }
-            }
+      } else { // vers la gauche
+        if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
+          collisionRightLeft();
+        } else {
+          p2.score++;
+          io.emit('updateScore', {p1: p1.score, p2: p2.score});
+          clearInterval(interval);
+          if (p2.score >= 5) {
+            io.emit('win', 'Joueur 2 a gagné');
+          }else {
+            io.emit('displayNewBall');
+          }
         }
-        io.emit('ballPosition', ballPosition);
-    }, 20);
+      }
+    }
+    io.emit('ballPosition', ballPosition);
+  }, 20);
 }
 
 function resetScore(){
