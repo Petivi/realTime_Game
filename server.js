@@ -16,6 +16,8 @@ var ballSize = 15;
 var boardWidth = 1100;
 var boardHeight = 600;
 var ballPosition;
+var initTimeBeforeAcc = 500;
+var timeBeforeAcceleraction = initTimeBeforeAcc;
 var vitesse = { x: 0, y: 0 };
 var playersPosition = { j1: { x: 20, y: 250 }, j2: { x: 20, y: 250 } };
 var playerWidth = 10;
@@ -24,7 +26,6 @@ var gameStarted = false;
 
 io.on('connection', client => {
     init(client);
-    // launchGame(client);
     client.on('movePlayer', position => {
         let posY = position.slice(0, -2);
         if (client.player === 1) {
@@ -48,7 +49,6 @@ io.on('connection', client => {
     client.on('rejouer', () => {
         gameStarted = false;
         resetScore();
-        vitesse = { x: 3, y: 3 };
         ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
         rdyCheckAndStart(client);
         io.emit('rejouer');
@@ -56,7 +56,6 @@ io.on('connection', client => {
 
     client.on('newBall', () => {
         gameStarted = false;
-        vitesse = { x: 3, y: 3 };
         ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
         io.emit('waitingPlayersOff');
         rdyCheckAndStart(client);
@@ -69,9 +68,7 @@ io.on('connection', client => {
 
 
 function rdyCheckAndStart(client) {
-    console.log('oui');
     if (!gameStarted) {
-        console.log('aa');
         io.emit('rdyCheck', client.player);
         if (client.player === 1) {
             p1.rdy = true;
@@ -99,6 +96,7 @@ function rdyCheckAndStart(client) {
 }
 
 function launchGame(client) {
+    initVitesse();
     let interval = setInterval(() => {
         ballPosition.x += vitesse.x;
         ballPosition.y += vitesse.y;
@@ -135,6 +133,20 @@ function launchGame(client) {
             }
         }
         io.emit('ballPosition', ballPosition);
+        timeBeforeAcceleraction--;
+        if (timeBeforeAcceleraction <= 0) {
+            if (vitesse.x < 0) {
+                vitesse.x--;
+            } else {
+                vitesse.x++;
+            }
+            if (vitesse.y < 0) {
+                vitesse.y--;
+            } else {
+                vitesse.y++;
+            }
+            timeBeforeAcceleraction = initTimeBeforeAcc;
+        }
     }, 20);
 }
 
@@ -154,7 +166,6 @@ function collisionRightLeft() {
 
 function init(client) {
     ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
-    vitesse = { x: 3, y: 3 };
     if (!p1) {
         p1 = { id: client.id, joueur: 1, rdy: false, score: 0 }
         client.player = 1;
@@ -167,5 +178,18 @@ function init(client) {
         io.emit('waitingPlayersOff');
     } else {
         io.to(client.id).emit('setJoueur', null);
+    }
+}
+
+function initVitesse() {
+    let res = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+    if (res === 1) {
+        vitesse.x = Math.random() * (5 - 1) + 1;
+        let newRes = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        vitesse.y = newRes === 1 ? 6 - vitesse.x : vitesse.x - 6;
+    } else {
+        vitesse.x = Math.random() * (-5 - 1) - 1;
+        let newRes = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        vitesse.y = newRes === 1 ? 6 - (vitesse.x * -1) : (vitesse.x * -1) - 6;
     }
 }
