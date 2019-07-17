@@ -45,17 +45,25 @@ io.on('connection', client => {
     });
 
     client.on('rejouer', () => {
-        vitesse = { x: 3, y: 3 };
-        ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
-        io.emit('rejouer');
-        rdyCheckAndStart(client);
-        // launchGame(client);
+      resetScore();
+      vitesse = { x: 3, y: 3 };
+      ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
+      rdyCheckAndStart(client);
+      io.emit('rejouer');
+    });
+
+    client.on('newBall', () => {
+      vitesse = { x: 3, y: 3 };
+      ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
+      io.emit('waitingPlayersOff');
+      rdyCheckAndStart(client);
     });
 
     client.on('rdyCheck', () => {
       rdyCheckAndStart(client);
     });
 });
+
 
 function rdyCheckAndStart(client){
   io.emit('rdyCheck', client.player);
@@ -94,20 +102,38 @@ function launchGame(client) {
                 if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
                     collisionRightLeft();
                 } else {
-                    io.emit('win', 'Joueur 1 a gagné');
+                    p1.score++;
+                    io.emit('updateScore', {p1: p1.score, p2: p2.score});
                     clearInterval(interval);
+                    if(p1.score >= 5){
+                      io.emit('win', 'Joueur 1 a gagné');
+                    }else {
+                      io.emit('displayNewBall');
+                    }
                 }
             } else { // vers la gauche
                 if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
                     collisionRightLeft();
                 } else {
-                    io.emit('win', 'Joueur 2 a gagné');
+                    p2.score++;
+                    io.emit('updateScore', {p1: p1.score, p2: p2.score});
                     clearInterval(interval);
+                    if (p2.score >= 5) {
+                      io.emit('win', 'Joueur 2 a gagné');
+                    }else {
+                      io.emit('displayNewBall');
+                    }
                 }
             }
         }
         io.emit('ballPosition', ballPosition);
     }, 20);
+}
+
+function resetScore(){
+  p1.score = 0;
+  p2.score = 0;
+  io.emit('updateScore', {p1: p1.score, p2: p2.score});
 }
 
 function collisionTopBottom() {
@@ -122,12 +148,12 @@ function init(client) {
     ballPosition = { x: (boardWidth / 2) - (ballSize / 2), y: (boardHeight / 2) - (ballSize / 2) };
     vitesse = { x: 3, y: 3 };
     if (!p1) {
-        p1 = { id: client.id, joueur: 1, rdy: false }
+        p1 = { id: client.id, joueur: 1, rdy: false, score: 0 }
         client.player = 1;
         io.to(client.id).emit('setJoueur', p1);
         io.emit('waitingPlayers');
     } else if (!p2) {
-        p2 = { id: client.id, joueur: 2, rdy: false }
+        p2 = { id: client.id, joueur: 2, rdy: false, score: 0 }
         client.player = 2;
         io.to(client.id).emit('setJoueur', p2);
         io.emit('waitingPlayersOff');

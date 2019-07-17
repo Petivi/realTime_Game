@@ -19,15 +19,20 @@
     </script>
     <div class="row">
         <div class="col offset-3">
-            <h1>Joueur 1</h1>
+            <h1>Joueur 1 - <span id="scoreP1" class="scorePlayers">0</span></h1>
         </div>
         <div class="col">
-            <h1>Joueur 2</h1>
+            <h1><span id="scoreP2" class="scorePlayers">0</span> - Joueur 2</h1>
         </div>
     </div>
     <div class="row" id="btnRejouer" style="display: none">
         <div class="col text-center">
             <button class="btn btn-primary" onclick="rejouer()">Rejouer</button>
+        </div>
+    </div>
+    <div class="row" id="btnNewBall" style="display: none">
+        <div class="col text-center">
+            <button class="btn btn-primary" onclick="newBall()">Nouvelle Balle</button>
         </div>
     </div>
     <div class="row">
@@ -64,12 +69,15 @@
         var ball = document.getElementById('ball');
         var terrain = document.getElementById('terrain');
         var btnRejouer = document.getElementById('btnRejouer');
+        var btnNewBall = document.getElementById('btnNewBall');
         var textVictoire = document.getElementById('textVictoire');
         var waitingPlayers = document.getElementById('waitingPlayers');
         var rdyCheck = document.getElementById('rdyCheck');
         var waitingP1 = document.getElementById('waitingP1');
         var waitingP2 = document.getElementById('waitingP2');
         var decompteSecondes = document.getElementById('decompteSecondes');
+        var scoreP1 = document.getElementById('scoreP1');
+        var scoreP2 = document.getElementById('scoreP2');
         var player, playerOpponent;
 
         rdyCheck.addEventListener('click',function(){
@@ -107,8 +115,19 @@
 
         socket.on('win', phrase => {
             btnRejouer.style.display = 'inline';
+            btnNewBall.style.display = 'none';
             textVictoire.innerHTML = phrase;
         });
+
+        socket.on('updateScore', data => {
+            scoreP1.innerHTML = data.p1;
+            scoreP2.innerHTML = data.p2;
+        });
+
+        socket.on('displayNewBall', data => {
+            btnNewBall.style.display = 'inline';
+        });
+
 
         socket.on('newOpponentPosition', p => {
             playerOpponent.style.top = p;
@@ -133,6 +152,10 @@
             socket.emit('rejouer');
         }
 
+        function newBall() {
+            socket.emit('newBall');
+        }
+
         socket.on('rejouer', () => {
             //socket.emit('rejouer');
             rdyCheck.style.display = 'block';
@@ -145,6 +168,7 @@
         });
         socket.on('waitingPlayersOff', () => {
           waitingPlayers.style.display = 'none';
+          btnNewBall.style.display = 'none';
           rdyCheck.style.display = 'block';
         });
 
