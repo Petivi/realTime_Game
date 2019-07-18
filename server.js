@@ -104,7 +104,7 @@ function launchGame(client) {
             collisionTopBottom();
         }
         if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
-            if (vitesse.x > 0) { // vers la droite
+            if (vitesse.x > 0 && ballPosition.x > 500) { // vers la droite
                 if (ballPosition.y >= playersPosition.j2.y && ballPosition.y <= (playersPosition.j2.y + playerHeight)) {
                     collisionRightLeft('droite');
                 } else {
@@ -117,7 +117,7 @@ function launchGame(client) {
                         io.emit('displayNewBall');
                     }
                 }
-            } else { // vers la gauche
+            } else if (vitesse.x < 0 && ballPosition.x <= 500) { // vers la gauche
                 if (ballPosition.y >= playersPosition.j1.y && ballPosition.y <= (playersPosition.j1.y + playerHeight)) {
                     collisionRightLeft('gauche');
                 } else {
@@ -161,10 +161,12 @@ function collisionTopBottom() {
 }
 
 function collisionRightLeft(direction) {
+    console.log('vitesse x avant : ' + vitesse.x);
+    console.log('vitesse y avant : ' + vitesse.y);
     vitesse.x = vitesse.x * (-1);
     let vitesseChangement = 1;
     let posTouched;
-    if (direction === 'gauche') {
+    if (direction === 'gauche' && vitesse.x > 0) {
         //console.log('position touchée : ' + (ballPosition.y - playersPosition.j1.y));
         posTouched = ballPosition.y - playersPosition.j1.y;
         if (vitesse.y < 0) { // balle monte
@@ -172,22 +174,16 @@ function collisionRightLeft(direction) {
         } else { //balle descend
 
         }
-    } else {
-        console.log('position touchée : ' + (ballPosition.y - playersPosition.j2.y));
-        console.log('vitesse x avant : ' + vitesse.x);
-        console.log('vitesse y avant : ' + vitesse.y);
+    } else if (vitesse.x < 0 && direction === 'droite') {
         posTouched = ballPosition.y - playersPosition.j2.y;
+        console.log('position touchée j2 : ' + posTouched);
         if (vitesse.y < 0) {//balle monte
             if (posTouched < 50) {
-                vitesse.y += vitesseChangement;
-                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
-            } else {
-
-
                 vitesse.y -= vitesseChangement;
                 vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
-
-
+            } else {
+                vitesse.y += vitesseChangement;
+                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
             }
         } else { //balle descend
             if (posTouched < 50) {
@@ -198,9 +194,16 @@ function collisionRightLeft(direction) {
                 vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
             }
         }
-        console.log('vitesse x après : ' + vitesse.x);
-        console.log('vitesse y après : ' + vitesse.y);
+        if (vitesse.x > -2) {
+            vitesse.x = Math.random() * (6 - 2) + 1;
+            let newRes = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+            vitesse.y = newRes === 1 ? 6 - vitesse.x : vitesse.x - 6;
+        }
     }
+    console.log('vitesse x après : ' + vitesse.x);
+    console.log('vitesse y après : ' + vitesse.y);
+    console.log('position ball : ')
+    console.log(ballPosition)
 }
 
 function init(client) {
