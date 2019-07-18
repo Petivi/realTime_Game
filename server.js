@@ -12,6 +12,8 @@ var io = socketio(server);
 
 var p1 = null;
 var p2 = null;
+var p1Touched = false;
+var p2Touched = false;
 var ballSize = 15;
 var boardWidth = 1100;
 var boardHeight = 600;
@@ -161,49 +163,92 @@ function collisionTopBottom() {
 }
 
 function collisionRightLeft(direction) {
-    console.log('vitesse x avant : ' + vitesse.x);
-    console.log('vitesse y avant : ' + vitesse.y);
+    if (direction === 'gauche') {
+        console.log('position touchée j1 ----------------------------------------------------------: ' + (ballPosition.y - playersPosition.j1.y));
+        console.log('vitesse x avant : ' + vitesse.x);
+        console.log('vitesse y avant : ' + vitesse.y);
+    }
+    if (direction === 'droite') {
+        console.log('position touchée j2 -----------------------------------------------------------: ' + (ballPosition.y - playersPosition.j2.y));
+        console.log('vitesse x avant : ' + vitesse.x);
+        console.log('vitesse y avant : ' + vitesse.y);
+    }
     vitesse.x = vitesse.x * (-1);
     let vitesseChangement = 1;
     let posTouched;
-    if (direction === 'gauche' && vitesse.x > 0) {
-        //console.log('position touchée : ' + (ballPosition.y - playersPosition.j1.y));
+    if (direction === 'gauche' && vitesse.x > 0 && !p1Touched) {
+        p1Touched = true;
+        setTimeout(() => {
+            p1Touched = false;
+        }, 500);
         posTouched = ballPosition.y - playersPosition.j1.y;
         if (vitesse.y < 0) { // balle monte
-
-        } else { //balle descend
-
-        }
-    } else if (vitesse.x < 0 && direction === 'droite') {
-        posTouched = ballPosition.y - playersPosition.j2.y;
-        console.log('position touchée j2 : ' + posTouched);
-        if (vitesse.y < 0) {//balle monte
+            console.log('balle monte')
             if (posTouched < 50) {
+                console.log('pose touche < 50')
                 vitesse.y -= vitesseChangement;
-                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
+                vitesse.x -= vitesseChangement;
             } else {
+                console.log('pose touche > 50')
                 vitesse.y += vitesseChangement;
-                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
+                vitesse.x += vitesseChangement;
             }
         } else { //balle descend
+            console.log('balle descend')
             if (posTouched < 50) {
+                console.log('pose touche < 50')
                 vitesse.y -= vitesseChangement;
-                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
+                vitesse.x += vitesseChangement;
             } else {
+                console.log('pose touche > 50')
                 vitesse.y += vitesseChangement;
-                vitesse.x = vitesse.x < 0 ? vitesse.x + vitesseChangement : vitesse.x - vitesseChangement;
+                vitesse.x -= vitesseChangement;
+            }
+        }
+        if (vitesse.x < 2) {
+            console.log('x < 2')
+            vitesse.x = Math.random() * (6 - 2) + 2;
+            console.log(vitesse.x)
+            let newRes = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+            vitesse.y = newRes === 1 ? 6 - vitesse.x : vitesse.x - 6;
+        }
+    } else if (vitesse.x < 0 && direction === 'droite' && !p2Touched) {
+        p2Touched = true;
+        setTimeout(() => {
+            p2Touched = false;
+        }, 500);
+        posTouched = ballPosition.y - playersPosition.j2.y;
+        if (vitesse.y < 0) {//balle monte
+            console.log('balle monte')
+            if (posTouched < 50) {
+                console.log('balle < 50')
+                vitesse.y -= vitesseChangement;
+                vitesse.x += vitesseChangement;
+            } else {
+                console.log('balle > 50')
+                vitesse.y += vitesseChangement;
+                vitesse.x += vitesseChangement;
+            }
+        } else { //balle descend
+            console.log('balle descend')
+            if (posTouched < 50) {
+                console.log('balle < 50')
+                vitesse.y += vitesseChangement;
+                vitesse.x += vitesseChangement;
+            } else {
+                console.log('balle > 50')
+                vitesse.y -= vitesseChangement;
+                vitesse.x -= vitesseChangement;
             }
         }
         if (vitesse.x > -2) {
-            vitesse.x = Math.random() * (6 - 2) + 1;
+            vitesse.x = Math.random() * (6 - 2) + 2;
             let newRes = Math.floor(Math.random() * (2 - 1 + 1) + 1);
             vitesse.y = newRes === 1 ? 6 - vitesse.x : vitesse.x - 6;
         }
     }
     console.log('vitesse x après : ' + vitesse.x);
     console.log('vitesse y après : ' + vitesse.y);
-    console.log('position ball : ')
-    console.log(ballPosition)
 }
 
 function init(client) {
