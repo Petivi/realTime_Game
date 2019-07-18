@@ -233,12 +233,12 @@ function collisionRightLeft(direction) {
             console.log('balle descend')
             if (posTouched < 50) {
                 console.log('balle < 50')
-                vitesse.y += vitesseChangement;
-                vitesse.x += vitesseChangement;
-            } else {
-                console.log('balle > 50')
                 vitesse.y -= vitesseChangement;
                 vitesse.x -= vitesseChangement;
+            } else {
+                console.log('balle > 50')
+                vitesse.y += vitesseChangement;
+                vitesse.x += vitesseChangement;
             }
         }
         if (vitesse.x > -2) {
