@@ -14,6 +14,8 @@ var p1 = null;
 var p2 = null;
 var p1Touched = false;
 var p2Touched = false;
+var colisiontTop = false;
+var vitesseChangement;
 var ballSize = 15;
 var boardWidth = 1100;
 var boardHeight = 600;
@@ -102,7 +104,11 @@ function launchGame(client) {
     let interval = setInterval(() => {
         ballPosition.x += vitesse.x;
         ballPosition.y += vitesse.y;
-        if (ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) {
+        if ((ballPosition.y < 0 || ballPosition.y > boardHeight - ballSize) && !colisiontTop) {
+            colisiontTop = true;
+            setTimeout(() => {
+                colisiontTop = false;
+            }, 100);
             collisionTopBottom();
         }
         if (ballPosition.x < (playersPosition.j1.x + playerWidth) || ballPosition.x > boardWidth - ballSize - (playersPosition.j2.x + playerWidth)) {
@@ -136,7 +142,7 @@ function launchGame(client) {
         }
         io.emit('ballPosition', ballPosition);
         timeBeforeAcceleraction--;
-        /* if (timeBeforeAcceleraction <= 0) {
+        if (timeBeforeAcceleraction <= 0) {
             if (vitesse.x < 0) {
                 vitesse.x--;
             } else {
@@ -148,7 +154,7 @@ function launchGame(client) {
                 vitesse.y++;
             }
             timeBeforeAcceleraction = initTimeBeforeAcc;
-        } */
+        }
     }, 20);
 }
 
@@ -174,7 +180,6 @@ function collisionRightLeft(direction) {
         console.log('vitesse y avant : ' + vitesse.y);
     }
     vitesse.x = vitesse.x * (-1);
-    let vitesseChangement = 1;
     let posTouched;
     if (direction === 'gauche' && vitesse.x > 0 && !p1Touched) {
         p1Touched = true;
@@ -185,10 +190,12 @@ function collisionRightLeft(direction) {
         if (vitesse.y < 0) { // balle monte
             console.log('balle monte')
             if (posTouched < 50) {
+                vitesseChangement = (((posTouched * 2 - 100) * -1) / 100);
                 console.log('pose touche < 50')
                 vitesse.y -= vitesseChangement;
                 vitesse.x -= vitesseChangement;
             } else {
+                vitesseChangement = ((posTouched * 2 - 100) / 100);
                 console.log('pose touche > 50')
                 vitesse.y += vitesseChangement;
                 vitesse.x += vitesseChangement;
@@ -196,11 +203,13 @@ function collisionRightLeft(direction) {
         } else { //balle descend
             console.log('balle descend')
             if (posTouched < 50) {
+                vitesseChangement = (((posTouched * 2 - 100) * -1) / 100);
                 console.log('pose touche < 50')
                 vitesse.y -= vitesseChangement;
                 vitesse.x += vitesseChangement;
             } else {
                 console.log('pose touche > 50')
+                vitesseChangement = ((posTouched * 2 - 100) / 100);
                 vitesse.y += vitesseChangement;
                 vitesse.x -= vitesseChangement;
             }
@@ -221,10 +230,12 @@ function collisionRightLeft(direction) {
         if (vitesse.y < 0) {//balle monte
             console.log('balle monte')
             if (posTouched < 50) {
+                vitesseChangement = (((posTouched * 2 - 100) * -1) / 100);
                 console.log('balle < 50')
                 vitesse.y -= vitesseChangement;
                 vitesse.x += vitesseChangement;
             } else {
+                vitesseChangement = ((posTouched * 2 - 100) / 100);
                 console.log('balle > 50')
                 vitesse.y += vitesseChangement;
                 vitesse.x += vitesseChangement;
@@ -232,10 +243,12 @@ function collisionRightLeft(direction) {
         } else { //balle descend
             console.log('balle descend')
             if (posTouched < 50) {
+                vitesseChangement = (((posTouched * 2 - 100) * -1) / 100);
                 console.log('balle < 50')
                 vitesse.y -= vitesseChangement;
                 vitesse.x -= vitesseChangement;
             } else {
+                vitesseChangement = ((posTouched * 2 - 100) / 100);
                 console.log('balle > 50')
                 vitesse.y += vitesseChangement;
                 vitesse.x += vitesseChangement;
@@ -247,6 +260,7 @@ function collisionRightLeft(direction) {
             vitesse.y = newRes === 1 ? 6 - vitesse.x : vitesse.x - 6;
         }
     }
+    console.log('vitesse change: ' + vitesseChangement)
     console.log('vitesse x après : ' + vitesse.x);
     console.log('vitesse y après : ' + vitesse.y);
 }
